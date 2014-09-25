@@ -4,17 +4,18 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+
+import rx.Observable;
 
 
 public class SearchActivity extends Activity {
@@ -67,19 +68,22 @@ public class SearchActivity extends Activity {
         protected String doInBackground(String... params) {
             String json = "";
             JSONObject jsonObject = new JSONObject();
+            JSONArray jsonArray = new JSONArray();
 
             try {
                 json = downloadUrl();
                 Log.d("url", json);
-                jsonObject = new JSONObject(json);
+                jsonArray = new JSONArray(json);
             } catch (IOException ioe) {
 
             } catch (JSONException jsone) {
                 jsone.printStackTrace();
             }
 
+            Observable.from(jsonArray);
+
             // jsonObject to Observable
-            Log.d("json", jsonObject.toString());
+//            Log.d("json", jsonObject.toString());
 
             return json;
         }
