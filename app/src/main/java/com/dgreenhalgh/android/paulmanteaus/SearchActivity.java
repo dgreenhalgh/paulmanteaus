@@ -17,7 +17,6 @@ import java.io.IOException;
 
 import rx.Observable;
 
-
 public class SearchActivity extends Activity {
 
     private static final String RHYME_BRAIN_URL = "http://rhymebrain.com/talk";
@@ -74,18 +73,45 @@ public class SearchActivity extends Activity {
                 json = downloadUrl();
                 Log.d("url", json);
                 jsonArray = new JSONArray(json);
-            } catch (IOException ioe) {
-
-            } catch (JSONException jsone) {
-                jsone.printStackTrace();
+                grabPortmanteau(jsonArray);
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
             }
 
-            Observable.from(jsonArray);
-
-            // jsonObject to Observable
-//            Log.d("json", jsonObject.toString());
-
             return json;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            // TODO: setText
+        }
+
+        /**
+         * Filters out "interesting" portmanteaus from the JSONArray using
+         * their length as a heuristic (longer portmanteaus are more
+         * interesting).
+         *
+         * @param jsonArray The JSON pulled from the RhymeBrain portmanteau API
+         */
+        private void grabPortmanteau(JSONArray jsonArray) {
+            for(int i = 0; i < jsonArray.length(); i++) {
+                try {
+                    Observable.from(jsonArray.getJSONObject(i))
+                            .filter(jsonObject -> {
+                                try {
+                                    return jsonObject.get("source").toString().length() > 12;
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                    return false;
+                                }
+                            })
+                            .subscribe(object -> Log.d("bleh", object.toString()));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
