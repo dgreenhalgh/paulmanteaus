@@ -17,7 +17,7 @@
         <EditText android:id="@+id/portmanteau_edit_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/enter_portmanteau_text_view"/>
+            android:hint="@string/enter_portmanteau_hint_text"/>
 
         <Button android:id="@+id/portmanteau_search_button"
             android:layout_width="wrap_content"

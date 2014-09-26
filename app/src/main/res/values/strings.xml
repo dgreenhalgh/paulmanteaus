@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Paulmanteaus</string>
-    <string name="enter_portmanteau_text_view">Enter portmeanteau</string>
+    <string name="enter_portmanteau_hint_text">Enter portmeanteau</string>
     <string name="search_button">Search</string>
 
 </resources>
