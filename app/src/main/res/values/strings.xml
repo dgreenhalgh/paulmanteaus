@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Paulmanteaus</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="enter_portmanteau_text_view">Enter portmeanteau</string>
+    <string name="search_button">Search</string>
 
 </resources>

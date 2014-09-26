@@ -4,6 +4,10 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -18,16 +22,27 @@ import java.io.IOException;
 import rx.Observable;
 
 public class SearchActivity extends Activity {
-
+    private static final String TAG = "SearchActivity";
     private static final String RHYME_BRAIN_URL = "http://rhymebrain.com/talk";
+
+    private EditText mSearchQueryEditText;
+    private Button mSearchButton;
+    private TextView mSearchResultTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
-        DownloadTask portmanteauDownloadTask = new DownloadTask();
-        portmanteauDownloadTask.execute();
+        mSearchQueryEditText = (EditText) findViewById(R.id.portmanteau_edit_text);
+
+        mSearchResultTextView = (TextView) findViewById(R.id.result_text_view);
+
+        mSearchButton = (Button) findViewById(R.id.portmanteau_search_button);
+        mSearchButton.setOnClickListener(view -> {
+            DownloadTask portmanteauDownloadTask = new DownloadTask();
+            portmanteauDownloadTask.execute();
+        });
     }
 
     /**
@@ -40,7 +55,7 @@ public class SearchActivity extends Activity {
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
-                .url(constructRequestUrl("paul"))
+                .url(constructRequestUrl(mSearchQueryEditText.getText().toString()))
                 .build();
 
         Response response = client.newCall(request).execute();
@@ -71,7 +86,7 @@ public class SearchActivity extends Activity {
 
             try {
                 json = downloadUrl();
-                Log.d("url", json);
+                Log.d(TAG, json);
                 jsonArray = new JSONArray(json);
                 grabPortmanteau(jsonArray);
             } catch (IOException | JSONException e) {
@@ -85,7 +100,7 @@ public class SearchActivity extends Activity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
-            // TODO: setText
+            mSearchResultTextView.setText(s);
         }
 
         /**
@@ -107,7 +122,7 @@ public class SearchActivity extends Activity {
                                     return false;
                                 }
                             })
-                            .subscribe(object -> Log.d("bleh", object.toString()));
+                            .subscribe(object -> Log.d(TAG, object.toString()));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
