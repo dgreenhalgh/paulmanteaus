@@ -17,12 +17,12 @@
         <EditText android:id="@+id/portmanteau_edit_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/enter_portmanteau_text_view"/>
+            android:hint="@string/enter_portmanteau_text_view"/>
 
         <Button android:id="@+id/portmanteau_search_button"
-            android:hint="@string/search_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:text="@string/search_button" />
 
     </LinearLayout>
 
