@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -27,7 +26,15 @@ import rx.Observable;
 
 public class SearchActivity extends Activity {
     private static final String TAG = "SearchActivity";
+
     private static final String RHYME_BRAIN_URL = "http://rhymebrain.com/talk";
+    private static final String RHYME_BRAIN_FUNCTION = "?function=getPortmanteaus";
+    private static final String RHYME_BRAIN_WORD = "&word=";
+
+    private static final String RHYME_SOURCE_WORDS = "source";
+    private static final String RHYME_COMBINED_WORDS = "combined";
+
+    private static final int INTERESTING_PORTMANTEAU_LENGTH_THRESHOLD = 12;
 
     private EditText mSearchQueryEditText;
     private Button mSearchButton;
@@ -56,13 +63,13 @@ public class SearchActivity extends Activity {
      * @throws IOException
      */
     private String downloadUrl() throws IOException {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient httpClient = new OkHttpClient();
 
         Request request = new Request.Builder()
                 .url(constructRequestUrl(mSearchQueryEditText.getText().toString()))
                 .build();
 
-        Response response = client.newCall(request).execute();
+        Response response = httpClient.newCall(request).execute();
         return response.body().string();
     }
 
@@ -75,8 +82,8 @@ public class SearchActivity extends Activity {
      */
     private String constructRequestUrl(String searchQuery) {
         return RHYME_BRAIN_URL
-                + "?function=getPortmanteaus"
-                + "&word="
+                + RHYME_BRAIN_FUNCTION
+                + RHYME_BRAIN_WORD
                 + searchQuery;
     }
 
@@ -84,14 +91,10 @@ public class SearchActivity extends Activity {
 
         @Override
         protected List<String> doInBackground(String... params) {
-            String json = "";
-            JSONObject jsonObject = new JSONObject();
-            JSONArray jsonArray = new JSONArray();
-
             try {
-                json = downloadUrl();
-                Log.d(TAG, json);
-                jsonArray = new JSONArray(json);
+                String json = downloadUrl();
+                JSONArray jsonArray = new JSONArray(json);
+
                 return grabPortmanteau(jsonArray);
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
@@ -102,8 +105,6 @@ public class SearchActivity extends Activity {
         @Override
         protected void onPostExecute(List<String> portmanteaus) {
             super.onPostExecute(portmanteaus);
-
-            Log.d("woo", "woo");
 
             String portmanteau = grabRandomPortmanteauFromList(portmanteaus);
             mSearchResultTextView.setText(portmanteau);
@@ -124,7 +125,8 @@ public class SearchActivity extends Activity {
                     Observable.from(jsonArray.getJSONObject(i))
                             .filter(jsonObject -> {
                                 try {
-                                    return jsonObject.get("source").toString().length() > 12;
+                                    String sourceWords = jsonObject.get(RHYME_SOURCE_WORDS).toString();
+                                    return sourceWords.length() > INTERESTING_PORTMANTEAU_LENGTH_THRESHOLD;
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                     return false;
@@ -132,7 +134,7 @@ public class SearchActivity extends Activity {
                             })
                             .map(jsonObject -> {
                                 try {
-                                    return jsonObject.get("combined").toString();
+                                    return jsonObject.get(RHYME_COMBINED_WORDS).toString();
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                     return null;
