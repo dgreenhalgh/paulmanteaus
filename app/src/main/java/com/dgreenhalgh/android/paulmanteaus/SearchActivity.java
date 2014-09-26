@@ -18,6 +18,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 import rx.Observable;
 
@@ -76,10 +80,10 @@ public class SearchActivity extends Activity {
                 + searchQuery;
     }
 
-    private class DownloadTask extends AsyncTask<String, Void, String> {
+    private class DownloadTask extends AsyncTask<String, Void, List<String>> {
 
         @Override
-        protected String doInBackground(String... params) {
+        protected List<String> doInBackground(String... params) {
             String json = "";
             JSONObject jsonObject = new JSONObject();
             JSONArray jsonArray = new JSONArray();
@@ -88,19 +92,21 @@ public class SearchActivity extends Activity {
                 json = downloadUrl();
                 Log.d(TAG, json);
                 jsonArray = new JSONArray(json);
-                grabPortmanteau(jsonArray);
+                return grabPortmanteau(jsonArray);
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
+                return Collections.emptyList();
             }
-
-            return json;
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
+        protected void onPostExecute(List<String> portmanteaus) {
+            super.onPostExecute(portmanteaus);
 
-            mSearchResultTextView.setText(s);
+            Log.d("woo", "woo");
+
+            String portmanteau = grabRandomPortmanteauFromList(portmanteaus);
+            mSearchResultTextView.setText(portmanteau);
         }
 
         /**
@@ -110,7 +116,9 @@ public class SearchActivity extends Activity {
          *
          * @param jsonArray The JSON pulled from the RhymeBrain portmanteau API
          */
-        private void grabPortmanteau(JSONArray jsonArray) {
+        private List<String> grabPortmanteau(JSONArray jsonArray) {
+            List<String> portmanteaus = new ArrayList<>();
+
             for(int i = 0; i < jsonArray.length(); i++) {
                 try {
                     Observable.from(jsonArray.getJSONObject(i))
@@ -122,11 +130,35 @@ public class SearchActivity extends Activity {
                                     return false;
                                 }
                             })
-                            .subscribe(object -> Log.d(TAG, object.toString()));
+                            .map(jsonObject -> {
+                                try {
+                                    return jsonObject.get("combined").toString();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                    return null;
+                                }
+                            })
+                            .map(combinedString -> combinedString.split(",")[0])
+                            .subscribe(portmanteau -> portmanteaus.add(portmanteau));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
+
+            return portmanteaus;
+        }
+
+        /**
+         * Used to grab a psuedorandom list element
+         *
+         * @param portmanteaus A list of portmanteaus
+         * @return A pseudorandom portmanteau from the list of portmanteaus
+         */
+        private String grabRandomPortmanteauFromList(List<String> portmanteaus) {
+            Random randomNumberGenerator = new Random();
+            int portmanteauIndex = randomNumberGenerator.nextInt(portmanteaus.size());
+
+            return portmanteaus.get(portmanteauIndex);
         }
     }
 }
